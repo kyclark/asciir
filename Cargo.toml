@@ -1,0 +1,14 @@
+[package]
+name = "asciir"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0.93"
+clap = { version = "4.5.21", features = ["derive"] }
+pretty_assertions = "1.4.0"
+transpose = "0.2.2"
+
+[dev-dependencies]
+assert_cmd = "2.0.13"
+pretty_assertions = "1.4.0"
