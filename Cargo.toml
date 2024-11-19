@@ -2,6 +2,11 @@
 name = "asciir"
 version = "0.1.0"
 edition = "2021"
+authors = ["Ken Youens-Clark <kyclark@gmail.com>"]
+description = "Print ASCII table/values"
+readme = "README.md"
+repository = "https://github.com/kyclark/asciir"
+license-file = "LICENSE"
 
 [dependencies]
 anyhow = "1.0.93"
