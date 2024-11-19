@@ -50,10 +50,12 @@ $ asciir 35 %
 Arguments that cannot be parsed as a `u8` in the range 33-126 or strings that are not exactly one character or are not ASCII values will be printed to `STDERR`:
 
 ```
-$ asciir Hey "" 😁
+$ asciir Hey "" 😁 0 127
 Input "Hey" must be a single character
 Input "" must be a single character
 😁 is not an ASCII value
+Codepoint 0 not in the range 33-126
+Codepoint 127 not in the range 33-126
 ```
 
 ## Author

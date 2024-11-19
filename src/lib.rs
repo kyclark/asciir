@@ -121,6 +121,9 @@ mod tests {
         let res = convert("");
         assert!(res.is_err());
 
+        let res = convert("😁");
+        assert!(res.is_err());
+
         let res = convert("33");
         assert!(res.is_ok());
         assert_eq!(res.unwrap(), Convert { codepoint: 33, character: '!'});
