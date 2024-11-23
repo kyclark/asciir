@@ -57,7 +57,11 @@ pub fn run(args: Cli) -> Result<()> {
             match convert(&val, base) {
                 Ok(translated) => {
                     let show = if val == translated.character.to_string() {
-                        translated.codepoint.to_string()
+                        match base {
+                            Base::Binary => format!("{:07b}", translated.codepoint),
+                            Base::Decimal => format!("{:3}", translated.codepoint),
+                            Base::Hexadecimal => format!("{:02x}", translated.codepoint),
+                        }
                     } else {
                         translated.character.to_string()
                     };
