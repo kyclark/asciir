@@ -5,7 +5,7 @@ use transpose::transpose;
 #[derive(Debug, Parser)]
 #[command(version, about)]
 /// Print ASCII table/values
-pub struct Args {
+pub struct Cli {
     /// Input file(s)
     #[arg(value_name = "VAL")]
     values: Vec<String>,
@@ -18,7 +18,7 @@ struct Convert {
 }
 
 // --------------------------------------------------
-pub fn run(args: Args) -> Result<()> {
+pub fn run(args: Cli) -> Result<()> {
     let values = args.values;
     if values.is_empty() {
         print_table()
