@@ -26,6 +26,14 @@ struct Mode {
     hexadecimal: bool,
 }
 
+#[derive(Default, Clone, Copy)]
+enum Base {
+    Binary,
+    #[default]
+    Decimal,
+    Hexadecimal,
+}
+
 #[derive(Debug, PartialEq)]
 struct Convert {
     codepoint: u8,
@@ -34,6 +42,13 @@ struct Convert {
 
 // --------------------------------------------------
 pub fn run(args: Cli) -> Result<()> {
+    let base = if args.mode.binary {
+        Base::Binary
+    } else if args.mode.hexadecimal {
+        Base::Hexadecimal
+    } else {
+        Base::Decimal
+    };
     let values = args.values;
     if values.is_empty() {
         print_table()
