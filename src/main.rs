@@ -1,5 +1,5 @@
+use asciir::{run, Args};
 use clap::Parser;
-use asciir::{Args, run};
 
 // --------------------------------------------------
 fn main() {

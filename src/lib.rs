@@ -66,7 +66,6 @@ fn convert(val: &str) -> Result<Convert> {
                 } else {
                     bail!("{val} is not an ASCII value")
                 }
-
             } else {
                 bail!(r#"Input "{val}" must be a single character"#)
             }
@@ -104,7 +103,7 @@ fn print_table() {
 // --------------------------------------------------
 #[cfg(test)]
 mod tests {
-    use super::{convert, ascii_table, Convert};
+    use super::{ascii_table, convert, Convert};
     use pretty_assertions::assert_eq;
 
     #[test]
@@ -126,19 +125,43 @@ mod tests {
 
         let res = convert("33");
         assert!(res.is_ok());
-        assert_eq!(res.unwrap(), Convert { codepoint: 33, character: '!'});
+        assert_eq!(
+            res.unwrap(),
+            Convert {
+                codepoint: 33,
+                character: '!'
+            }
+        );
 
         let res = convert("!");
         assert!(res.is_ok());
-        assert_eq!(res.unwrap(), Convert { codepoint: 33, character: '!'});
+        assert_eq!(
+            res.unwrap(),
+            Convert {
+                codepoint: 33,
+                character: '!'
+            }
+        );
 
         let res = convert("126");
         assert!(res.is_ok());
-        assert_eq!(res.unwrap(), Convert { codepoint: 126, character: '~'});
+        assert_eq!(
+            res.unwrap(),
+            Convert {
+                codepoint: 126,
+                character: '~'
+            }
+        );
 
         let res = convert("~");
         assert!(res.is_ok());
-        assert_eq!(res.unwrap(), Convert { codepoint: 126, character: '~'});
+        assert_eq!(
+            res.unwrap(),
+            Convert {
+                codepoint: 126,
+                character: '~'
+            }
+        );
     }
 
     #[test]
