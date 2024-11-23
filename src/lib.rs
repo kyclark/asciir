@@ -1,14 +1,37 @@
 use anyhow::{bail, Result};
-use clap::Parser;
+use clap::{Args, Parser};
 use transpose::transpose;
 
 #[derive(Debug, Parser)]
 #[command(version, about)]
 /// Print ASCII table/values
-pub struct Args {
-    /// Input file(s)
+pub struct Cli {
+    #[command(flatten)]
+    mode: Mode,
+
+    /// Input value(s)
     #[arg(value_name = "VAL")]
     values: Vec<String>,
+}
+
+#[derive(Args, Clone, Debug)]
+#[group(multiple = false)]
+struct Mode {
+    /// Binary mode
+    #[arg(short, long)]
+    binary: bool,
+
+    /// Hexadecimal mode
+    #[arg(short = 'x', long)]
+    hexadecimal: bool,
+}
+
+#[derive(Default, Clone, Copy)]
+enum Base {
+    Binary,
+    #[default]
+    Decimal,
+    Hexadecimal,
 }
 
 #[derive(Debug, PartialEq)]
@@ -18,20 +41,35 @@ struct Convert {
 }
 
 // --------------------------------------------------
-pub fn run(args: Args) -> Result<()> {
+pub fn run(args: Cli) -> Result<()> {
+    let base = if args.mode.binary {
+        Base::Binary
+    } else if args.mode.hexadecimal {
+        Base::Hexadecimal
+    } else {
+        Base::Decimal
+    };
     let values = args.values;
     if values.is_empty() {
-        print_table()
+        print_table(base)
     } else {
         for val in values {
-            match convert(&val) {
+            match convert(&val, base) {
                 Ok(translated) => {
                     let show = if val == translated.character.to_string() {
-                        translated.codepoint.to_string()
+                        match base {
+                            Base::Binary => format!("{:07b}", translated.codepoint),
+                            Base::Decimal => format!("{:3}", translated.codepoint),
+                            Base::Hexadecimal => format!("{:02x}", translated.codepoint),
+                        }
                     } else {
                         translated.character.to_string()
                     };
-                    println!("{val:>3} = {show}");
+                    match base {
+                        Base::Binary => println!("{val:>7} = {show}"),
+                        Base::Decimal => println!("{val:>3} = {show}"),
+                        Base::Hexadecimal => println!("{val:>2} = {show}"),
+                    }
                 }
                 Err(e) => eprintln!("{e}"),
             }
@@ -42,8 +80,13 @@ pub fn run(args: Args) -> Result<()> {
 }
 
 // --------------------------------------------------
-fn convert(val: &str) -> Result<Convert> {
-    match val.parse::<u8>() {
+fn convert(val: &str, base: Base) -> Result<Convert> {
+    let radix = match base {
+        Base::Binary => 2,
+        Base::Decimal => 10,
+        Base::Hexadecimal => 16,
+    };
+    match u8::from_str_radix(val, radix) {
         Ok(codepoint) => {
             if (33..127).contains(&codepoint) {
                 Ok(Convert {
@@ -66,7 +109,6 @@ fn convert(val: &str) -> Result<Convert> {
                 } else {
                     bail!("{val} is not an ASCII value")
                 }
-
             } else {
                 bail!(r#"Input "{val}" must be a single character"#)
             }
@@ -75,21 +117,23 @@ fn convert(val: &str) -> Result<Convert> {
 }
 
 // --------------------------------------------------
-fn ascii_table() -> Vec<String> {
+fn ascii_table(base: Base) -> Vec<String> {
     let range: Vec<u32> = (33..=127).collect();
     let mut nums = vec![0; 95];
     transpose(&range, &mut nums, 19, 5);
     let vals: Vec<String> = nums
         .iter()
         .map(|&i| {
-            format!(
-                "{i:3}: {}",
-                if i == 127 {
-                    "DEL".to_string()
-                } else {
-                    std::char::from_u32(i).unwrap().to_string()
-                }
-            )
+            let val = if i == 127 {
+                "DEL".to_string()
+            } else {
+                std::char::from_u32(i).unwrap().to_string()
+            };
+            match base {
+                Base::Binary => format!("{i:07b}: {}", val),
+                Base::Decimal => format!("{i:3}: {}", val),
+                Base::Hexadecimal => format!("{i:02x}: {}", val),
+            }
         })
         .collect();
 
@@ -97,48 +141,72 @@ fn ascii_table() -> Vec<String> {
 }
 
 // --------------------------------------------------
-fn print_table() {
-    println!("{}", ascii_table().join("\n"))
+fn print_table(base: Base) {
+    println!("{}", ascii_table(base).join("\n"))
 }
 
 // --------------------------------------------------
 #[cfg(test)]
 mod tests {
-    use super::{convert, ascii_table, Convert};
+    use super::{ascii_table, convert, Base, Convert};
     use pretty_assertions::assert_eq;
 
     #[test]
     fn test_convert() {
-        let res = convert("0");
+        let res = convert("0", Base::Decimal);
         assert!(res.is_err());
 
-        let res = convert("127");
+        let res = convert("127", Base::Decimal);
         assert!(res.is_err());
 
-        let res = convert("256");
+        let res = convert("256", Base::Decimal);
         assert!(res.is_err());
 
-        let res = convert("");
+        let res = convert("", Base::Decimal);
         assert!(res.is_err());
 
-        let res = convert("😁");
+        let res = convert("😁", Base::Decimal);
         assert!(res.is_err());
 
-        let res = convert("33");
+        let res = convert("33", Base::Decimal);
         assert!(res.is_ok());
-        assert_eq!(res.unwrap(), Convert { codepoint: 33, character: '!'});
+        assert_eq!(
+            res.unwrap(),
+            Convert {
+                codepoint: 33,
+                character: '!'
+            }
+        );
 
-        let res = convert("!");
+        let res = convert("!", Base::Decimal);
         assert!(res.is_ok());
-        assert_eq!(res.unwrap(), Convert { codepoint: 33, character: '!'});
+        assert_eq!(
+            res.unwrap(),
+            Convert {
+                codepoint: 33,
+                character: '!'
+            }
+        );
 
-        let res = convert("126");
+        let res = convert("126", Base::Decimal);
         assert!(res.is_ok());
-        assert_eq!(res.unwrap(), Convert { codepoint: 126, character: '~'});
+        assert_eq!(
+            res.unwrap(),
+            Convert {
+                codepoint: 126,
+                character: '~'
+            }
+        );
 
-        let res = convert("~");
+        let res = convert("~", Base::Decimal);
         assert!(res.is_ok());
-        assert_eq!(res.unwrap(), Convert { codepoint: 126, character: '~'});
+        assert_eq!(
+            res.unwrap(),
+            Convert {
+                codepoint: 126,
+                character: '~'
+            }
+        );
     }
 
     #[test]
@@ -164,6 +232,6 @@ mod tests {
             r##" 50: 2   69: E   88: X  107: k  126: ~"##,
             r##" 51: 3   70: F   89: Y  108: l  127: DEL"##,
         ];
-        assert_eq!(ascii_table(), table);
+        assert_eq!(ascii_table(Base::Decimal), table);
     }
 }
