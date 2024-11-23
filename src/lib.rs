@@ -65,7 +65,11 @@ pub fn run(args: Cli) -> Result<()> {
                     } else {
                         translated.character.to_string()
                     };
-                    println!("{val:>3} = {show}");
+                    match base {
+                        Base::Binary => println!("{val:>7} = {show}"),
+                        Base::Decimal => println!("{val:>3} = {show}"),
+                        Base::Hexadecimal => println!("{val:>2} = {show}"),
+                    }
                 }
                 Err(e) => eprintln!("{e}"),
             }
