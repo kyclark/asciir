@@ -1,14 +1,29 @@
 use anyhow::{bail, Result};
-use clap::Parser;
+use clap::{Args, Parser};
 use transpose::transpose;
 
 #[derive(Debug, Parser)]
 #[command(version, about)]
 /// Print ASCII table/values
 pub struct Cli {
-    /// Input file(s)
+    #[command(flatten)]
+    mode: Mode,
+
+    /// Input value(s)
     #[arg(value_name = "VAL")]
     values: Vec<String>,
+}
+
+#[derive(Args, Clone, Debug)]
+#[group(multiple = false)]
+struct Mode {
+    /// Binary mode
+    #[arg(short, long)]
+    binary: bool,
+
+    /// Hexadecimal mode
+    #[arg(short = 'x', long)]
+    hexadecimal: bool,
 }
 
 #[derive(Debug, PartialEq)]
